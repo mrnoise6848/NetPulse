@@ -33,5 +33,5 @@ class MainActivity : ComponentActivity() {
 fun NetPulseApp() {
     val viewModel: DiagnosticViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()
-    MainScreen(network = uiState.network)
+    MainScreen(network = uiState.network, localInfo = uiState.localInfo)
 }

@@ -4,6 +4,8 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.noise.netpulse.data.network.ConnectivityMonitor
+import com.noise.netpulse.data.network.NetworkInfoProvider
+import com.noise.netpulse.domain.model.LocalNetworkInfo
 import com.noise.netpulse.domain.model.NetworkSnapshot
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +18,7 @@ import kotlinx.coroutines.launch
 /** Top-level state shown on the main screen. */
 data class MainUiState(
     val network: NetworkSnapshot? = null,
+    val localInfo: LocalNetworkInfo = LocalNetworkInfo(),
     val running: Boolean = false,
 )
 
@@ -26,6 +29,7 @@ data class MainUiState(
 class DiagnosticViewModel(application: Application) : AndroidViewModel(application) {
 
     private val connectivityMonitor = ConnectivityMonitor(application, viewModelScope)
+    private val networkInfoProvider = NetworkInfoProvider(application)
 
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
@@ -33,7 +37,14 @@ class DiagnosticViewModel(application: Application) : AndroidViewModel(applicati
     init {
         connectivityMonitor.snapshot
             .onEach { snapshot ->
-                _uiState.update { it.copy(network = snapshot) }
+                val info = if (snapshot.state == com.noise.netpulse.domain.model.ConnectionState.DISCONNECTED) {
+                    LocalNetworkInfo()
+                } else {
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                        networkInfoProvider.currentLocalInfo()
+                    }
+                }
+                _uiState.update { it.copy(network = snapshot, localInfo = info) }
             }
             .launchIn(viewModelScope)
 
