@@ -119,6 +119,7 @@ class DiagnosticViewModel(application: Application) : AndroidViewModel(applicati
             _uiState.update { it.copy(running = true, currentStep = null) }
             try {
                 val report = executePipeline()
+                runNetworkKey = null
                 historyRepository.save(report)
                 _uiState.update {
                     it.copy(
@@ -216,7 +217,7 @@ class DiagnosticViewModel(application: Application) : AndroidViewModel(applicati
     private fun handleNetworkChangeWhileRunning(snapshot: NetworkSnapshot, info: LocalNetworkInfo) {
         val job = runJob ?: return
         val key = runNetworkKey ?: return
-        if (!job.isActive || _uiState.value.currentStep == null) return
+        if (!job.isActive || !_uiState.value.running) return
         val newKey = networkKey(snapshot, info)
         if (newKey != key) {
             job.cancel()
@@ -233,8 +234,14 @@ class DiagnosticViewModel(application: Application) : AndroidViewModel(applicati
                 durationMs = 0,
                 abortedDueToNetworkChange = true,
             )
+            historyRepository.save(report)
             _uiState.update {
-                it.copy(running = false, currentStep = null, report = report)
+                it.copy(
+                    running = false,
+                    currentStep = null,
+                    report = report,
+                    history = historyRepository.entries(),
+                )
             }
         }
     }

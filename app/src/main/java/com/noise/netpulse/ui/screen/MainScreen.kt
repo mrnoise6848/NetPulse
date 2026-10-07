@@ -40,6 +40,7 @@ fun MainScreen(
     onRunDiagnostic: () -> Unit,
     onCancelDiagnostic: () -> Unit,
     onOpenDetails: () -> Unit,
+    onOpenNetworkSettings: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -87,6 +88,15 @@ fun MainScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+
+        // Helpful action when problems are detected — never auto-modifies settings.
+        if (report != null && report.findings.any {
+                it.severity == com.noise.netpulse.domain.model.Severity.ERROR ||
+                    it.severity == com.noise.netpulse.domain.model.Severity.WARNING
+            }
+        ) {
+            OutlinedButton(onClick = onOpenNetworkSettings) { Text("Open network settings") }
         }
     }
 }
