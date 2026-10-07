@@ -39,6 +39,7 @@ Thresholds are pragmatic heuristics, **not** universal standards.
 ## Cancellation
 
 The pipeline runs inside a cancellable coroutine job. Cancellation is
-checked between probes and ports; all probes use bounded timeouts, so a
-cancelled run stops within seconds at most. Cancelling from the UI or a
+checked between probes and ports. Configured socket timeouts bound individual
+attempts, but the blocking system resolver has no app-specified deadline;
+a whole-run cancellation deadline is not guaranteed. Cancelling from the UI or a
 mid-run network change both go through the same path.

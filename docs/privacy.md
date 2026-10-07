@@ -1,6 +1,7 @@
 # NetPulse Privacy
 
-NetPulse is **local-first**. Everything it measures stays on the device.
+Diagnostic reports and history stay on the device. DNS/HTTPS probes communicate
+with external services, which observe requests and the public source IP.
 
 ## Never uploaded
 
@@ -9,7 +10,7 @@ NetPulse is **local-first**. Everything it measures stays on the device.
 - DNS configuration
 - SSID or location-protected Wi-Fi metadata (deliberately never requested)
 - Network history or diagnostic results
-- Any user-identifying data
+- No diagnostic report payload is sent to a NetPulse service
 
 There is no analytics SDK, no remote endpoint of NetPulse's own, and no
 network request other than the user-triggered diagnostic probes.

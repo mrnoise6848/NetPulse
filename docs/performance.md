@@ -2,8 +2,8 @@
 
 ## Target
 
-A normal full diagnostic completes in **under 10 seconds** on a healthy
-connection:
+Under ten seconds is an unmeasured healthy-network design target, not a demonstrated
+result or hard deadline. Sequential failures may take substantially longer:
 
 | Step | Budget |
 |---|---|
@@ -12,8 +12,9 @@ connection:
 | Internet / HTTPS | 5 s connect + read timeout per endpoint, 3 endpoints |
 | Reliability | 10 sequential HTTPS probes, typically ≪ 1 s each on a healthy link |
 
-Each checker uses **bounded timeouts everywhere**; the pipeline checks for
-cancellation between probes so a cancel takes effect within seconds at most.
+Gateway, UDP DNS and HTTPS attempts use configured timeouts. The system DNS call
+`InetAddress.getAllByName` has no app-specified deadline and is blocking. Cancellation
+is checked between probes; it does not guarantee immediate interruption of native calls.
 
 ## Rules the implementation follows
 
