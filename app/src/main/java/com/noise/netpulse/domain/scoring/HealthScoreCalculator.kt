@@ -40,7 +40,7 @@ object HealthScoreCalculator {
             connectivityScore(network),
             gatewayScore(network, gateway),
             dnsScore(dns),
-            latencyScore(https?.bestLatencyMs),
+            latencyScore(https),
             httpsScore(reliability),
         )
         val total = components.sumOf { it.score }
@@ -101,14 +101,18 @@ object HealthScoreCalculator {
         return HealthScore.Component("DNS", score, 20)
     }
 
-    private fun latencyScore(bestLatencyMs: Long?): HealthScore.Component {
-        val score = when (LatencyAnalyzer.classifyInternet(bestLatencyMs)) {
-            LatencyGrade.EXCELLENT -> 20
-            LatencyGrade.GOOD -> 17
-            LatencyGrade.FAIR -> 12
-            LatencyGrade.HIGH -> 6
-            LatencyGrade.VERY_HIGH -> 0
-            null -> 10
+    private fun latencyScore(https: HttpsResult?): HealthScore.Component {
+        val score = when {
+            // Internet probes ran and all failed: latency genuinely failed, not "unverifiable".
+            https != null && !https.works -> 0
+            else -> when (LatencyAnalyzer.classifyInternet(https?.bestLatencyMs)) {
+                LatencyGrade.EXCELLENT -> 20
+                LatencyGrade.GOOD -> 17
+                LatencyGrade.FAIR -> 12
+                LatencyGrade.HIGH -> 6
+                LatencyGrade.VERY_HIGH -> 0
+                null -> 10
+            }
         }
         return HealthScore.Component("Latency", score, 20)
     }

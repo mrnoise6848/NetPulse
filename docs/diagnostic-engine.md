@@ -46,7 +46,7 @@ partial credit**, not a perfect score or a penalty.
 | Connectivity | 25 | validated=25, connected-unvalidated=15, none=0 |
 | Gateway | 15 | reachable & fair-or-better=15, reachable=10, unreachable=0, not probeable (mobile/unavailable)=10 |
 | DNS | 20 | good latency=20, fair=16, high=10, very high=4; system fails but a resolver answers=8; total failure=0; unavailable=10 |
-| Latency | 20 | internet grade: Excellent=20, Good=17, Fair=12, High=6, Very High=0; unavailable=10 |
+| Latency | 20 | internet grade: Excellent=20, Good=17, Fair=12, High=6, Very High=0; all probes failed=0; never ran=10 |
 | HTTPS reliability | 20 | ≥95 %=20, ≥80 %=14, ≥50 %=8, <50 %=4; all timeouts=0; unavailable=10 |
 
 The score is a **diagnostic summary**, not an internet quality standard.

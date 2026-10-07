@@ -9,6 +9,7 @@ import android.net.wifi.WifiManager
 import com.noise.netpulse.domain.model.LocalNetworkInfo
 import java.net.Inet4Address
 import java.net.InetAddress
+import java.util.Locale
 
 /**
  * Extracts local link details from [LinkProperties] and (for Wi-Fi) DHCP info.
@@ -83,6 +84,7 @@ class NetworkInfoProvider(context: Context) {
         val base = networkInt and (-(1 shl hostBits))
         val gatewayInt = base + 1
         val addr = String.format(
+            Locale.ROOT,
             "%d.%d.%d.%d",
             (gatewayInt ushr 24) and 0xFF,
             (gatewayInt ushr 16) and 0xFF,

@@ -2,6 +2,7 @@ package com.noise.netpulse.domain
 
 import com.noise.netpulse.domain.engine.DiagnosticEngine
 import com.noise.netpulse.domain.engine.LatencyAnalyzer
+import com.noise.netpulse.domain.engine.LatencyGrade
 import com.noise.netpulse.domain.engine.ReliabilityAnalyzer
 import com.noise.netpulse.domain.model.ConnectionState
 import com.noise.netpulse.domain.model.DiagnosticStep
@@ -12,6 +13,7 @@ import com.noise.netpulse.domain.model.EndpointProbe
 import com.noise.netpulse.domain.model.GatewayResult
 import com.noise.netpulse.domain.model.HttpErrorType
 import com.noise.netpulse.domain.model.HttpsResult
+import com.noise.netpulse.domain.model.InternetResult
 import com.noise.netpulse.domain.model.NetworkSnapshot
 import com.noise.netpulse.domain.model.NetworkType
 import com.noise.netpulse.domain.model.Severity
@@ -27,18 +29,18 @@ import org.junit.Test
 class LatencyAnalyzerTest {
     @Test
     fun `local classification uses local thresholds`() {
-        assertEquals(LatencyAnalyzer.LatencyGrade.EXCELLENT, LatencyAnalyzer.classifyLocal(20))
-        assertEquals(LatencyAnalyzer.LatencyGrade.GOOD, LatencyAnalyzer.classifyLocal(50))
-        assertEquals(LatencyAnalyzer.LatencyGrade.FAIR, LatencyAnalyzer.classifyLocal(100))
-        assertEquals(LatencyAnalyzer.LatencyGrade.HIGH, LatencyAnalyzer.classifyLocal(200))
-        assertEquals(LatencyAnalyzer.LatencyGrade.VERY_HIGH, LatencyAnalyzer.classifyLocal(201))
+        assertEquals(LatencyGrade.EXCELLENT, LatencyAnalyzer.classifyLocal(20))
+        assertEquals(LatencyGrade.GOOD, LatencyAnalyzer.classifyLocal(50))
+        assertEquals(LatencyGrade.FAIR, LatencyAnalyzer.classifyLocal(100))
+        assertEquals(LatencyGrade.HIGH, LatencyAnalyzer.classifyLocal(200))
+        assertEquals(LatencyGrade.VERY_HIGH, LatencyAnalyzer.classifyLocal(201))
     }
 
     @Test
     fun `internet classification uses internet thresholds`() {
-        assertEquals(LatencyAnalyzer.LatencyGrade.EXCELLENT, LatencyAnalyzer.classifyInternet(50))
-        assertEquals(LatencyAnalyzer.LatencyGrade.GOOD, LatencyAnalyzer.classifyInternet(100))
-        assertEquals(LatencyAnalyzer.LatencyGrade.VERY_HIGH, LatencyAnalyzer.classifyInternet(401))
+        assertEquals(LatencyGrade.EXCELLENT, LatencyAnalyzer.classifyInternet(50))
+        assertEquals(LatencyGrade.GOOD, LatencyAnalyzer.classifyInternet(100))
+        assertEquals(LatencyGrade.VERY_HIGH, LatencyAnalyzer.classifyInternet(401))
     }
 
     @Test
@@ -108,6 +110,13 @@ class DiagnosticEngineTest {
         assertEquals(1, report.findings.size)
     }
 
+    private fun internetOf(https: HttpsResult) = InternetResult(
+        probes = https.probes,
+        successCount = https.successCount,
+        failureCount = https.failureCount,
+        bestLatencyMs = https.bestLatencyMs,
+    )
+
     @Test
     fun `healthy evidence yields no warnings and healthy summary`() {
         val dns = DnsResult(
@@ -118,7 +127,7 @@ class DiagnosticEngineTest {
         val gateway = GatewayResult("192.168.1.1", reachable = true, latencyMs = 3, method = "ICMP echo")
         val report = DiagnosticEngine.diagnose(
             network = wifiConnected(), gateway = gateway, dns = dns,
-            internet = healthyHttps(), https = healthyHttps(),
+            internet = internetOf(healthyHttps()), https = healthyHttps(),
             reliability = null, epochNowMs = 100, durationMs = 10,
         )
         assertEquals(StepStatus.PASSED, report.stepStatuses[DiagnosticStep.CONNECTION])
@@ -137,7 +146,7 @@ class DiagnosticEngineTest {
         )
         val report = DiagnosticEngine.diagnose(
             network = wifiConnected(), gateway = null, dns = dns,
-            internet = healthyHttps(), https = healthyHttps(),
+            internet = internetOf(healthyHttps()), https = healthyHttps(),
             reliability = null, epochNowMs = 100, durationMs = 10,
         )
         val finding = report.findings.first { it.step == DiagnosticStep.DNS }
@@ -153,7 +162,7 @@ class DiagnosticEngineTest {
         val gateway = GatewayResult("192.168.1.1", reachable = false, latencyMs = null, method = "TCP connect", error = "refused")
         val report = DiagnosticEngine.diagnose(
             network = wifiConnected(), gateway = gateway, dns = null,
-            internet = healthyHttps(), https = healthyHttps(),
+            internet = internetOf(healthyHttps()), https = healthyHttps(),
             reliability = null, epochNowMs = 100, durationMs = 10,
         )
         val finding = report.findings.first { it.step == DiagnosticStep.GATEWAY }
@@ -175,7 +184,7 @@ class DiagnosticEngineTest {
         )
         val report = DiagnosticEngine.diagnose(
             network = wifiConnected(), gateway = null, dns = dns,
-            internet = https, https = https,
+            internet = internetOf(https), https = https,
             reliability = null, epochNowMs = 100, durationMs = 10,
         )
         assertEquals(StepStatus.PASSED, report.stepStatuses[DiagnosticStep.DNS])
@@ -193,7 +202,7 @@ class DiagnosticEngineTest {
         )
         val report = DiagnosticEngine.diagnose(
             network = wifiConnected(), gateway = null, dns = null,
-            internet = healthyHttps(), https = healthyHttps(),
+            internet = internetOf(healthyHttps()), https = healthyHttps(),
             reliability = result, epochNowMs = 100, durationMs = 10,
         )
         val finding = report.findings.first { it.step == DiagnosticStep.RELIABILITY }

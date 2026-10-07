@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,7 +34,7 @@ enum class AppScreen { MAIN, DETAIL, HISTORY }class MainActivity : ComponentActi
         setContent {
             NetPulseTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    NetPulseApp()
+                    NetPulseApp(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -55,14 +56,14 @@ private fun HistoryButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun NetPulseApp() {
+fun NetPulseApp(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val viewModel: DiagnosticViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()
     val screen by viewModel.screen.collectAsState()
 
     when (screen) {
-        AppScreen.MAIN -> Column {
+        AppScreen.MAIN -> Column(modifier = modifier) {
             MainScreen(
                 network = uiState.network,
                 localInfo = uiState.localInfo,

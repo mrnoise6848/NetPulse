@@ -55,7 +55,8 @@ fun HistoryScreen(
     }
 }
 
-private val entryDateFormat = SimpleDateFormat("MMM d, HH:mm", Locale.getDefault())
+private fun entryDateFormat(): SimpleDateFormat =
+    SimpleDateFormat("MMM d, HH:mm", Locale.getDefault())
 
 @Composable
 private fun HistoryEntryCard(
@@ -71,7 +72,7 @@ private fun HistoryEntryCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "${entryDateFormat.format(Date(entry.timestampEpochMs))} — " +
+                    text = "${entryDateFormat().format(Date(entry.timestampEpochMs))} — " +
                         entry.networkType.label(),
                     style = MaterialTheme.typography.titleSmall,
                 )
