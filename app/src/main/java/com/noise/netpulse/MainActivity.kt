@@ -18,11 +18,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.noise.netpulse.ui.DiagnosticViewModel
 import com.noise.netpulse.ui.screen.DetailScreen
+import com.noise.netpulse.ui.screen.HistoryScreen
 import com.noise.netpulse.ui.screen.MainScreen
 import com.noise.netpulse.ui.theme.NetPulseTheme
 
 /** Screens of the app; navigation is simple ViewModel-held state. */
-enum class AppScreen { MAIN, DETAIL }
+enum class AppScreen { MAIN, DETAIL, HISTORY }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +37,11 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
+
+@Composable
+private fun HistoryButton(onClick: () -> Unit) {
+    TextButton(onClick = onClick) { Text("History") }
 }
 
 @Composable
@@ -56,13 +62,19 @@ fun NetPulseApp() {
                 onCancelDiagnostic = viewModel::cancelDiagnostic,
                 onOpenDetails = viewModel::openDetails,
             )
-            if (uiState.report != null) {
-                TextButton(onClick = viewModel::openDetails) { Text("Back to top") }
-            }
+            HistoryButton(onClick = viewModel::openHistory)
         }
         AppScreen.DETAIL -> Column(modifier = Modifier.fillMaxWidth()) {
             TextButton(onClick = viewModel::openMain) { Text("← Main") }
             DetailScreen(report = uiState.report)
+        }
+        AppScreen.HISTORY -> Column(modifier = Modifier.fillMaxWidth()) {
+            TextButton(onClick = viewModel::openMain) { Text("← Main") }
+            HistoryScreen(
+                entries = uiState.history,
+                onDeleteEntry = viewModel::deleteHistoryEntry,
+                onClearHistory = viewModel::clearHistory,
+            )
         }
     }
 }

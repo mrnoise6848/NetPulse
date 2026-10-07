@@ -43,6 +43,7 @@ data class MainUiState(
     /** The step currently executing, so progress shows real work. */
     val currentStep: DiagnosticStep? = null,
     val report: DiagnosticReport? = null,
+    val history: List<com.noise.netpulse.data.history.DiagnosticRepository.HistoryEntry> = emptyList(),
 )
 
 /**
@@ -57,6 +58,7 @@ class DiagnosticViewModel(application: Application) : AndroidViewModel(applicati
     private val httpsChecker = HttpsChecker()
     private val dnsChecker = DnsChecker { currentLocalInfo() }
     private val reliabilityAnalyzer = ReliabilityAnalyzer()
+    private val historyRepository = com.noise.netpulse.data.history.DiagnosticRepository(application)
 
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
@@ -76,6 +78,22 @@ class DiagnosticViewModel(application: Application) : AndroidViewModel(applicati
 
     fun openMain() {
         _screen.value = com.noise.netpulse.AppScreen.MAIN
+        _uiState.update { it.copy(history = historyRepository.entries()) }
+    }
+
+    fun openHistory() {
+        _screen.value = com.noise.netpulse.AppScreen.HISTORY
+        _uiState.update { it.copy(history = historyRepository.entries()) }
+    }
+
+    fun deleteHistoryEntry(id: String) {
+        historyRepository.delete(id)
+        _uiState.update { it.copy(history = historyRepository.entries()) }
+    }
+
+    fun clearHistory() {
+        historyRepository.clear()
+        _uiState.update { it.copy(history = emptyList()) }
     }
 
     init {
@@ -101,8 +119,14 @@ class DiagnosticViewModel(application: Application) : AndroidViewModel(applicati
             _uiState.update { it.copy(running = true, currentStep = null) }
             try {
                 val report = executePipeline()
+                historyRepository.save(report)
                 _uiState.update {
-                    it.copy(running = false, currentStep = null, report = report)
+                    it.copy(
+                        running = false,
+                        currentStep = null,
+                        report = report,
+                        history = historyRepository.entries(),
+                    )
                 }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 _uiState.update { it.copy(running = false, currentStep = null) }
