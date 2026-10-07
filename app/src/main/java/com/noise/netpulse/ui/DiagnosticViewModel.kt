@@ -66,6 +66,18 @@ class DiagnosticViewModel(application: Application) : AndroidViewModel(applicati
     /** Network identity captured when the run started; used to detect mid-run changes. */
     private var runNetworkKey: String? = null
 
+    /** Simple in-app navigation state (no navigation dependency needed). */
+    private val _screen = MutableStateFlow(com.noise.netpulse.AppScreen.MAIN)
+    val screen: StateFlow<com.noise.netpulse.AppScreen> = _screen.asStateFlow()
+
+    fun openDetails() {
+        _screen.value = com.noise.netpulse.AppScreen.DETAIL
+    }
+
+    fun openMain() {
+        _screen.value = com.noise.netpulse.AppScreen.MAIN
+    }
+
     init {
         connectivityMonitor.snapshot
             .onEach { snapshot ->
